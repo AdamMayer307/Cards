@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf8">
+	<title>Blackjack</title>
+	<style type="text/css">
+		body {
+			background: url('table.png') #dadada no-repeat center top;
+		}
+
+		#cards img,
+		#shuffled img {
+			height: 50px;
+			float: left;
+			margin: 5px;
+		}
+
+		#dealer {
+			width: 400px;
+			height: 220px;
+			margin: auto;
+			text-align: center;
+		}
+
+		#dealer img {
+			width: 70px;
+		}
+
+		#deck p {
+			color: #fff;
+			font-size: 50px;
+			font-weight: bold;
+			margin: 0;
+			padding: 0;
+		}
+
+		#deck img {
+			width: 70px;
+		}
+
+		#player {
+			width: 400px;
+			height: 140px;
+			margin: auto;
+			margin-top: 105px;
+			text-align: center;
+		}
+
+		#player-cards {
+			height: 105px;
+		}
+
+		#player img {
+			width: 70px;
+		}
+	</style>
+
+	<script src="http://code.jquery.com/jquery-3.1.1.slim.js"></script>
+
+	<script>
+		var deck, dealerCards, playerCards, dealerTotal, playerTotal, aceTrue;
+
+		function getNewDeck() {
+			// code from last week
+			var deck = [];
+
+			var suits = ['clubs', 'spades', 'diamonds', 'hearts'];
+			var cards = [
+				['ace', 11],
+				[2, 2],
+				[3, 3],
+				[4, 4],
+				[5, 5],
+				[6, 6],
+				[7, 7],
+				[8, 8],
+				[9, 9],
+				[10, 10],
+				['jack', 10],
+				['queen', 10],
+				['king', 10]
+			];
+
+			for (var i = 0; i < suits.length; i++) {
+				for (var j = 0; j < cards.length; j++) {
+					deck.push({ suits: suits[i], cards: cards[j][0], value: cards[j][1] });
+				}
+			}
+
+
+
+			console.log(deck);
+			return deck;
+		}
+
+		function shuffleDeck(deck) {
+			// code from last week
+			var theCards = [];
+
+
+			var n = deck.length;
+			for (var i = 0; i < n; i++) {
+				theCards.push(deck.splice(Math.floor(Math.random() * deck.length), 1)[0]);
+			}
+
+
+
+			console.log(theCards);
+
+			return theCards;
+
+		}
+
+		function printCards(theCards, location) {
+			var cards = '';
+
+			// add code here that builds a string of images that represent the cards
+			for (var i = 0; i < theCards.length; i++) {
+
+				cards += '<img src="cards/' + theCards[i].cards + "_of_" + theCards[i].suits + '.png">';
+
+
+			}
+
+			$('#' + location).html(cards);
+
+
+
+			console.log(cards);
+
+			//
+
+		}
+
+		function getCard() {
+
+
+			return deck.pop();
+		}
+
+		function displayWinner(winner) {
+			$('#deck').html('<p>' + "You Won With: " + playerTotal + '</p>');
+			endGame();
+
+			//	$('#buttons').prop('disabled', true);
+		}
+
+		function displayLoser(loser) {
+			$('#deck').html('<p>' + "You Lost! Dealer has: " + dealerTotal + '</p>');
+			endGame();
+		}
+
+		function displayTie(tie) {
+			$('#deck').html('<p>' + "Dealer Pushes With: " + dealerTotal + '</p>');
+			endGame();
+		}
+
+		function displayBust(bust) {
+			$('#deck').html('<p>' + "You Bust With: " + playerTotal + '</p>');
+			endGame();
+		}
+
+		function displayBlackjack(blackjack) {
+			$('#deck').html('<p>' + "Blackjack" + '</p>');
+			endGame();
+		}
+
+		function countCards(theHand) {
+			// find the point total of the hand.
+			// aces are counted as 11 for this week.
+
+			playerTotal = 0;
+			dealerTotal = 0;
+
+			for (var i = 0; i < playerCards.length; i++) {
+				playerTotal += playerCards[i].value;
+				
+				if(playerTotal > 21 && playerCards[i].value == 11) {
+					playerTotal += playerTotal - 10;
+				}
+			}
+
+			for (var j = 0; j < dealerCards.length; j++) {
+				dealerTotal += dealerCards[j].value;
+			}
+			
+			
+
+			if (playerTotal == 21 && i <= 2) {
+				displayBlackjack();
+			}
+
+			console.log(deck);
+			console.log(playerCards);
+
+		}
+/*		
+		function checkAce(theHand) {
+			for (var i = 0; i < playerCards.length; i++)
+				if (playerCards[i].cards == 'ace') {
+					aceTrue = true;
+				}
+				else {
+					aceTrue = false;
+				}
+			
+		}
+*/
+		function stand() {
+			// if the player stands, then the dealer takes cards as long as the dealer's hand is < 17.
+			// Once hand is greater than 17, then game is over.  If the dealer is >= 17 and <= 21, then dealer wins.
+			// If dealer is > 21, then player wins.
+
+
+			do {
+				dealerCards.push(getCard());
+				countCards(dealerCards);
+				printCards(dealerCards, 'dealer-cards');
+
+			} while (dealerTotal < 17);
+
+			if (dealerTotal > playerTotal && dealerTotal >= 17 && dealerTotal <= 21) {
+				displayLoser();
+			}
+			else if (dealerTotal == playerTotal) {
+				displayTie();
+			}
+			else {
+				displayWinner();
+			}
+
+
+		}
+
+		function hit() {
+			// Add another card to the players hand.  If the card causes player
+			// to bust, then end game.  Player busts when total of cards is greater than 21.
+			// be sure to handle the "ACE"  the ace could be either 1 or 11
+
+			playerCards.push(getCard());
+			countCards(playerCards);
+			printCards(playerCards, 'player-cards');
+
+
+//			How to deal with 21???
+//			if (playerCards.cards == 'ace' && playerTotal > 21)
+//			playerTotal += playerTotal - 10;
+				
+			if (playerTotal > 21) {
+				displayBust();
+			}
+		}
+
+		function endGame() {
+// disable hit and stand buttons after winner/loser is declared
+			$('.controlButtons').prop('disabled',true);
+		}
+
+		function game() {
+			// init each player
+			dealerCards = [];
+			playerCards = [];
+
+			// init deck
+			deck = shuffleDeck(getNewDeck());
+
+			// show deck 
+			$('#deck').html('<img src="back.png" />');
+
+// enable hit/stand buttons when new game is pressed
+			$('.controlButtons').prop('disabled', false);
+
+			// clear any cards that dealer may have showing from last hand
+			printCards(dealerCards, 'dealer-cards');
+
+			// deal first two cards to player
+			playerCards.push(getCard());
+			playerCards.push(getCard());
+
+			countCards();
+//			checkAce();
+
+			// print hand
+			printCards(playerCards, 'player-cards');
+		}
+	</script>
+</head>
+
+<body>
+	<div id="dealer">
+		<div id="deck"></div>
+		<div id="dealer-cards"></div>
+	</div>
+	<div id="player">
+		<div id="player-cards"></div>
+		<div id="buttons">
+			<button class="controlButtons" onclick="hit();">Hit</button>
+			<button class="controlButtons" onclick="stand();">Stand</button>
+			<button onclick="game();">New Game</button>
+		</div>
+	</div>
+</body>
+
+</html>
